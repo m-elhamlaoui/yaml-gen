@@ -1,0 +1,29 @@
+@namespace(uri="input", prefix="input")
+package input;
+
+class PipelineInput {
+    attr String[1] pipelineName;
+    val Job[*] jobs;
+    val Event[*] events;
+}
+
+class Job {
+    attr String[1] name;
+    attr String runsOn;
+    val EnvVariable[*] envVariables;
+    attr String[*] needs;
+}
+
+class Event {
+    attr String[1] eventType;
+    val Branch[*] branches;
+}
+
+class Branch {
+    attr String[1] name;
+}
+
+class EnvVariable {
+    attr String[1] key;
+    attr String[1] value;
+}

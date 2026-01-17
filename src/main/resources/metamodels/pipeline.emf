@@ -1,0 +1,41 @@
+@namespace(uri="pipeline", prefix="pipeline")
+package pipeline;
+
+class WorkflowFile {
+    attr String[1] name;
+    ref TriggerConfig[1] on;
+    val Job[*] jobs;
+}
+
+class TriggerConfig {
+    val Event[*] events;
+}
+
+class Event {
+    attr String[1] eventType;
+    val Branch[*] branches;
+}
+
+class Branch {
+    attr String[1] name;
+}
+
+class Job {
+    attr String[1] name;
+    attr String[1] runsOn;
+    attr String[*] needs;
+    val EnvVariable[*] env;
+    val Step[*] steps;
+}
+
+class Step {
+    attr String[1] name;
+    attr String uses;
+    attr String run;
+    val EnvVariable[*] with;
+}
+
+class EnvVariable {
+    attr String[1] key;
+    attr String[1] value;
+}

@@ -1,0 +1,146 @@
+rule TransformJob
+    transform sourceJob :  Source! Job
+    to targetJob : Target!Job {
+
+        targetJob.name = sourceJob.name;
+        targetJob.runsOn = sourceJob.runsOn. isDefined() ? sourceJob.runsOn : "ubuntu-latest";
+
+        for (env in sourceJob.envVariables) {
+            var targetEnv = new Target! EnvVariable;
+            targetEnv.key = env.key;
+            targetEnv.value = env.value;
+            targetJob.env.add(targetEnv);
+        }
+
+        for (need in sourceJob.needs) {
+            targetJob.needs.add(need);
+        }
+
+        var checkoutStep = new Target!Step;
+        checkoutStep.name = "Checkout code";
+        checkoutStep.uses = "actions/checkout@v3";
+        targetJob.steps.add(checkoutStep);
+
+        if (sourceJob.name == "build") {
+            targetJob.steps.addAll(getBuildSteps());
+        }
+        else if (sourceJob.name == "test") {
+            targetJob. steps.addAll(getTestSteps());
+        }
+        else if (sourceJob.name == "deploy") {
+            targetJob. steps.addAll(getDeploySteps());
+        }
+    }
+
+rule TransformEvent
+    transform sourceEvent :  Source!Event
+    to targetEvent : Target!Event {
+
+        targetEvent.eventType = sourceEvent.eventType;
+
+        for (branch in sourceEvent. branches) {
+            var targetBranch = new Target!Branch;
+            targetBranch.name = branch.name;
+            targetEvent.branches.add(targetBranch);
+        }
+    }
+
+rule TransformPipeline
+    transform source : Source!PipelineInput
+    to target :  Target!WorkflowFile {
+
+        target.name = source.pipelineName;
+
+        var triggerConfig = new Target!TriggerConfig;
+        target.on = triggerConfig;
+
+        for (event in source.events) {
+            var transformedEvent = event.equivalent();
+            target.on.events.add(transformedEvent);
+        }
+
+        for (job in source. jobs) {
+            var transformedJob = job.equivalent();
+            target.jobs.add(transformedJob);
+        }
+    }
+
+operation getBuildSteps() : Sequence {
+    var steps = new Sequence;
+
+    var setupJava = new Target!Step;
+    setupJava.name = "Set up JDK 11";
+    setupJava. uses = "actions/setup-java@v3";
+    var javaVersion = new Target!EnvVariable;
+    javaVersion.key = "java-version";
+    javaVersion.value = "11";
+    var distribution = new Target!EnvVariable;
+    distribution.key = "distribution";
+    distribution.value = "temurin";
+    setupJava.with.add(javaVersion);
+    setupJava.with.add(distribution);
+    steps.add(setupJava);
+
+    var buildStep = new Target! Step;
+    buildStep.name = "Build with Maven";
+    buildStep.run = "mvn clean package -DskipTests";
+    steps.add(buildStep);
+
+    return steps;
+}
+
+operation getTestSteps() : Sequence {
+    var steps = new Sequence;
+
+    var setupJava = new Target!Step;
+    setupJava.name = "Set up JDK 11";
+    setupJava. uses = "actions/setup-java@v3";
+    var javaVersion = new Target!EnvVariable;
+    javaVersion. key = "java-version";
+    javaVersion.value = "11";
+    var distribution = new Target!EnvVariable;
+    distribution.key = "distribution";
+    distribution.value = "temurin";
+    setupJava. with.add(javaVersion);
+    setupJava.with. add(distribution);
+    steps.add(setupJava);
+
+    var testStep = new Target!Step;
+    testStep. name = "Run tests";
+    testStep.run = "mvn test";
+    steps.add(testStep);
+
+    return steps;
+}
+
+operation getDeploySteps() : Sequence {
+    var steps = new Sequence;
+
+    var loginStep = new Target!Step;
+    loginStep.name = "Login to Docker Hub";
+    loginStep.uses = "docker/login-action@v2";
+    var username = new Target!EnvVariable;
+    username.key = "username";
+    username.value = "${{ secrets.DOCKERHUB_USERNAME }}";
+    var password = new Target!EnvVariable;
+    password.key = "password";
+    password.value = "${{ secrets.DOCKERHUB_TOKEN }}";
+    loginStep.with.add(username);
+    loginStep.with.add(password);
+    steps.add(loginStep);
+
+    var buildPushStep = new Target!Step;
+    buildPushStep.name = "Build and push Docker image";
+    buildPushStep.uses = "docker/build-push-action@v4";
+    var push = new Target!EnvVariable;
+    push.key = "push";
+    push.value = "true";
+    var tags = new Target!EnvVariable;
+    tags.key = "tags";
+    tags.value = "${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest";
+    buildPushStep.with.add(push);
+    buildPushStep. with.add(tags);
+    steps.add(buildPushStep);
+
+    return steps;
+}

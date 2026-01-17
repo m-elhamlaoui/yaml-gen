@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?nsuri input?>
+<PipelineInput pipelineName="My Awesome CI/CD Pipeline">
+  <jobs>
+    <Job name="build" runsOn="ubuntu-latest">
+      <envVariables>
+        <EnvVariable key="JAVA_HOME" value="/usr/lib/jvm/java-11"/>
+        <EnvVariable key="MAVEN_OPTS" value="-Xmx1024m"/>
+      </envVariables>
+    </Job>
+    <Job name="test" runsOn="ubuntu-latest">
+      <needs>
+        build
+      </needs>
+    </Job>
+    <Job name="deploy" runsOn="ubuntu-latest">
+      <needs>
+        test
+      </needs>
+    </Job>
+  </jobs>
+  <events>
+    <Event eventType="push">
+      <branches>
+        <Branch name="main"/>
+        <Branch name="develop"/>
+      </branches>
+    </Event>
+    <Event eventType="pull_request">
+      <branches>
+        <Branch name="main"/>
+      </branches>
+    </Event>
+  </events>
+</PipelineInput>

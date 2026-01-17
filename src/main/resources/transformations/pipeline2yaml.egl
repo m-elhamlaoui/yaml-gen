@@ -1,0 +1,46 @@
+[%
+var workflow = WorkflowFile. all. first();
+%]
+name: [%= workflow.name %]
+
+on:
+[% for (event in workflow.on.events) { %]
+  [%= event.eventType %]:
+    branches:
+[%   for (branch in event.branches) { %]
+      - [%= branch.name %]
+[%   } %]
+[% } %]
+
+jobs:
+[% for (job in workflow.jobs) { %]
+  [%= job.name %]:
+    runs-on: [%= job.runsOn %]
+[%   if (job.needs. size() > 0) { %]
+    needs:  [[%= job.needs.concat(", ") %]]
+[%   } %]
+[%   if (job.env.size() > 0) { %]
+    env:
+[%     for (env in job. env) { %]
+      [%= env.key %]: [%= env.value %]
+[%     } %]
+[%   } %]
+
+    steps:
+[%   for (step in job.steps) { %]
+      - name: [%= step.name %]
+[%     if (step.uses. isDefined()) { %]
+        uses: [%= step.uses %]
+[%     } %]
+[%     if (step.run.isDefined()) { %]
+        run: [%= step.run %]
+[%     } %]
+[%     if (step.with.size() > 0) { %]
+        with:
+[%       for (param in step.with) { %]
+          [%= param.key %]: [%= param.value %]
+[%       } %]
+[%     } %]
+[%   } %]
+
+[% } %]
