@@ -21,16 +21,12 @@ public class Main {
 
             ModelToModel m2m = new ModelToModel();
             EmfModel pipelineModel = m2m.transform(flexmiPath);
-            System.out.println();
 
             ModelToText m2t = new ModelToText();
-            String yamlOutput = m2t. generate(pipelineModel);
-            System.out.println();
+            String yamlOutput = m2t.generate(pipelineModel);
 
-            System.out.println("GENERATED GITHUB ACTIONS WORKFLOW");
+            System.out.println("GITHUB ACTIONS WORKFLOW");
             System.out.println(yamlOutput);
-
-            System.out. println("PIPELINE COMPLETED");
 
         } catch (Exception e) {
             System.err. println("\nERROR OCCURRED:");
