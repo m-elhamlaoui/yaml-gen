@@ -51,6 +51,34 @@ public class Main {
 
 
 
+                // needs
+                while (yes(sc, "  Ajouter une dépendance (needs) ? (y/n): ")) {
+                    System.out.print("    Nom du job requis: ");
+                    String need = readLine(sc);
+                    job.addNeed(need);
+                }
+
+                input.addJob(job);
+                System.out.println("Job ajouté: " + job.getName());
+            }
+
+            // Events
+            System.out.println("\n--- Events ---");
+            while (yes(sc, "Ajouter un event ? (y/n): ")) {
+                Event event = new Event();
+                System.out.print("Type d'event (ex: push, pull_request): ");
+                event.setEventType(readLine(sc));
+
+                while (yes(sc, "  Ajouter une branche pour cet event ? (y/n): ")) {
+                    System.out.print("    Nom de la branche: ");
+                    String branchName = readLine(sc);
+                    event.addBranch(new Branch(branchName));
+                }
+
+                input.addEvent(event);
+                System.out.println("Event ajouté: " + event.getEventType());
+            }
+
             return input;
         } finally {
             // Ne ferme pas System.in (fermement de Scanner ferme System.in sur certaines JVMs),
@@ -70,6 +98,6 @@ public class Main {
         String ans = readLine(sc);
         if (ans.isEmpty()) return false;
         ans = ans.trim().toLowerCase();
-        return ans.equals("y") || ans.equals("si") || ans.equals("oui") || ans.equals("yes");
+        return ans.equals("y") || ans.equals("o") || ans.equals("oui") || ans.equals("yes");
     }
 }
