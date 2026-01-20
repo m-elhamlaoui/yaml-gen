@@ -49,7 +49,25 @@ public class Main {
 
             PipelineInput input = new PipelineInput(pipelineName);
 
+            // Jobs
+            System.out.println("\n--- Jobs ---");
+            while (yes(sc, "Ajouter un job ? (y/n): ")) {
+                Job job = new Job();
+                System.out.print("Nom du job: ");
+                job.setName(readLine(sc));
 
+                System.out.print("runsOn (laisser vide pour 'ubuntu-latest'): ");
+                String runsOn = readLine(sc);
+                if (runsOn != null && !runsOn.trim().isEmpty()) job.setRunsOn(runsOn);
+
+                // env variables
+                while (yes(sc, "  Ajouter une variable d'environnement ? (y/n): ")) {
+                    System.out.print("    KEY: ");
+                    String key = readLine(sc);
+                    System.out.print("    VALUE: ");
+                    String val = readLine(sc);
+                    job.addEnvVariable(new EnvVariable(key, val));
+                }
 
                 // needs
                 while (yes(sc, "  Ajouter une dépendance (needs) ? (y/n): ")) {
@@ -81,8 +99,7 @@ public class Main {
 
             return input;
         } finally {
-            // Ne ferme pas System.in (fermement de Scanner ferme System.in sur certaines JVMs),
-            // on laisse scanner être garbage-collected à la fin du programme.
+
         }
     }
 
