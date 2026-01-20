@@ -58,9 +58,7 @@ public class Main {
         pushEvent.addBranch(new Branch("develop"));
         input.addEvent(pushEvent);
 
-        Event prEvent = new Event("pull_request");
-        prEvent.addBranch(new Branch("main"));
-        input.addEvent(prEvent);
+
 
         return input;
     }
