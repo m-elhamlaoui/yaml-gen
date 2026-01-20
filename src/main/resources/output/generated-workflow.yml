@@ -1,11 +1,11 @@
 name: Pipeline
 
 on:
-  push:
+  PUSH:
     branches:
       - main
       - develop
-  pull_request:
+  PULL_REQUEST:
     branches:
       - main
 

@@ -36,7 +36,13 @@ rule TransformEvent
     transform sourceEvent : Source! Event
     to targetEvent : Target!Event {
 
-        targetEvent.eventType = sourceEvent.eventType;
+        // Convert enum from source metamodel to target metamodel using literal name
+        var eventTypeName = sourceEvent.eventType.name;
+        if (eventTypeName == "PUSH") {
+            targetEvent.eventType = Target!EventType#PUSH;
+        } else if (eventTypeName == "PULL_REQUEST") {
+            targetEvent.eventType = Target!EventType#PULL_REQUEST;
+        }
 
         for (branch in sourceEvent.branches) {
             var targetBranch = new Target!Branch;

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pipeline:WorkflowFile xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:pipeline="pipeline" name="Pipeline">
   <on>
-    <events eventType="push">
+    <events>
       <branches name="main"/>
       <branches name="develop"/>
     </events>
-    <events eventType="pull_request">
+    <events eventType="PULL_REQUEST">
       <branches name="main"/>
     </events>
   </on>
