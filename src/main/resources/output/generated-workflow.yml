@@ -1,20 +1,16 @@
-name: Pipeline
+name: souda
 
 on:
-  PUSH:
-    branches:
-      - main
-      - develop
   PULL_REQUEST:
     branches:
-      - main
+      - dev
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    needs:  [build]
     env:
-      JAVA_HOME: /usr/lib/jvm/java-11
-      MAVEN_OPTS: -Xmx1024m
+      dockerHubename: hamza
 
     steps:
       - name: Checkout code
@@ -24,12 +20,14 @@ jobs:
         with:
           java-version: 11
           distribution: temurin
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      - name: Run tests
+        run: mvn test
 
-  test:
+  build:
     runs-on: ubuntu-latest
-    needs:  [build]
+    env:
+      apikey: 1414627
+      password: $secrets{env.password}
 
     steps:
       - name: Checkout code

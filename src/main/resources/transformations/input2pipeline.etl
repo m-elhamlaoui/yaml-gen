@@ -1,9 +1,12 @@
+// Transformation ETL: Input -> Pipeline
+// Utilise le preset injecté depuis Java pour les steps
+
 rule TransformJob
-    transform sourceJob :  Source! Job
+    transform sourceJob : Source!Job
     to targetJob : Target!Job {
 
         targetJob.name = sourceJob.name;
-        targetJob.runsOn = sourceJob.runsOn. isDefined() ? sourceJob.runsOn : "ubuntu-latest";
+        targetJob.runsOn = sourceJob.runsOn.isDefined() ? sourceJob.runsOn : "ubuntu-latest";
 
         for (env in sourceJob.envVariables) {
             var targetEnv = new Target!EnvVariable;
@@ -16,27 +19,25 @@ rule TransformJob
             targetJob.needs.add(need);
         }
 
+        // Step de checkout (toujours ajouté)
         var checkoutStep = new Target!Step;
         checkoutStep.name = "Checkout code";
         checkoutStep.uses = "actions/checkout@v3";
         targetJob.steps.add(checkoutStep);
 
-        if (sourceJob.name == "build") {
-            targetJob.steps.addAll(getBuildSteps());
-        }
-        else if (sourceJob.name == "test") {
-            targetJob. steps.addAll(getTestSteps());
-        }
-        else if (sourceJob.name == "deploy") {
-            targetJob.steps.addAll(getDeploySteps());
+        // Obtenir les steps du preset injecté
+        var jobSteps = getPresetSteps(sourceJob.name);
+        for (step in jobSteps) {
+            var targetStep = createStepFromPreset(step);
+            targetJob.steps.add(targetStep);
         }
     }
 
 rule TransformEvent
-    transform sourceEvent : Source! Event
+    transform sourceEvent : Source!Event
     to targetEvent : Target!Event {
 
-        // Convert enum from source metamodel to target metamodel using literal name
+        // Conversion de l'enum du métamodèle source vers le métamodèle cible
         var eventTypeName = sourceEvent.eventType.name;
         if (eventTypeName == "PUSH") {
             targetEvent.eventType = Target!EventType#PUSH;
@@ -53,7 +54,7 @@ rule TransformEvent
 
 rule TransformPipeline
     transform source : Source!PipelineInput
-    to target :  Target!WorkflowFile {
+    to target : Target!WorkflowFile {
 
         target.name = source.pipelineName;
 
@@ -65,88 +66,51 @@ rule TransformPipeline
             target.on.events.add(transformedEvent);
         }
 
-        for (job in source. jobs) {
+        for (job in source.jobs) {
             var transformedJob = job.equivalent();
             target.jobs.add(transformedJob);
         }
     }
 
-operation getBuildSteps() : Sequence {
-    var steps = new Sequence;
-
-    var setupJava = new Target!Step;
-    setupJava.name = "Set up JDK 11";
-    setupJava.uses = "actions/setup-java@v3";
-    var javaVersion = new Target!EnvVariable;
-    javaVersion.key = "java-version";
-    javaVersion.value = "11";
-    var distribution = new Target!EnvVariable;
-    distribution.key = "distribution";
-    distribution.value = "temurin";
-    setupJava.with. add(javaVersion);
-    setupJava.with.add(distribution);
-    steps.add(setupJava);
-
-    var buildStep = new Target!Step;
-    buildStep.name = "Build with Maven";
-    buildStep.run = "mvn clean package -DskipTests";
-    steps.add(buildStep);
-
-    return steps;
+// Opération pour obtenir les steps du preset en fonction du type de job
+operation getPresetSteps(jobName : String) : Sequence {
+    // preset est une Map<String, List<Map<String, Object>>> injectée depuis Java
+    if (preset.isDefined() and preset.containsKey(jobName)) {
+        return preset.get(jobName);
+    }
+    return new Sequence;
 }
 
-operation getTestSteps() : Sequence {
-    var steps = new Sequence;
+// Opération pour créer un Step à partir des données du preset
+operation createStepFromPreset(stepData : Any) : Target!Step {
+    var step = new Target!Step;
 
-    var setupJava = new Target!Step;
-    setupJava.name = "Set up JDK 11";
-    setupJava.uses = "actions/setup-java@v3";
-    var javaVersion = new Target!EnvVariable;
-    javaVersion.key = "java-version";
-    javaVersion.value = "11";
-    var distribution = new Target!EnvVariable;
-    distribution.key = "distribution";
-    distribution.value = "temurin";
-    setupJava.with.add(javaVersion);
-    setupJava.with.add(distribution);
-    steps.add(setupJava);
+    // Nom du step
+    if (stepData.containsKey("name")) {
+        step.name = stepData.get("name");
+    }
 
-    var testStep = new Target! Step;
-    testStep.name = "Run tests";
-    testStep.run = "mvn test";
-    steps.add(testStep);
+    // Action uses
+    if (stepData.containsKey("uses")) {
+        step.uses = stepData.get("uses");
+    }
 
-    return steps;
+    // Commande run
+    if (stepData.containsKey("run")) {
+        step.run = stepData.get("run");
+    }
+
+    // Paramètres with
+    if (stepData.containsKey("with")) {
+        var withParams = stepData.get("with");
+        for (key in withParams.keySet()) {
+            var param = new Target!EnvVariable;
+            param.key = key;
+            param.value = withParams.get(key).asString();
+            step.with.add(param);
+        }
+    }
+
+    return step;
 }
 
-operation getDeploySteps() : Sequence {
-    var steps = new Sequence;
-
-    var loginStep = new Target!Step;
-    loginStep.name = "Login to Docker Hub";
-    loginStep.uses = "docker/login-action@v2";
-    var username = new Target!EnvVariable;
-    username.key = "username";
-    username.value = "${{ secrets.DOCKERHUB_USERNAME }}";
-    var password = new Target!EnvVariable;
-    password.key = "password";
-    password.value = "${{ secrets.DOCKERHUB_TOKEN }}";
-    loginStep.with.add(username);
-    loginStep.with.add(password);
-    steps.add(loginStep);
-
-    var buildPushStep = new Target!Step;
-    buildPushStep.name = "Build and push Docker image";
-    buildPushStep.uses = "docker/build-push-action@v4";
-    var push = new Target!EnvVariable;
-    push.key = "push";
-    push.value = "true";
-    var tags = new Target!EnvVariable;
-    tags.key = "tags";
-    tags.value = "${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest";
-    buildPushStep.with.add(push);
-    buildPushStep. with.add(tags);
-    steps.add(buildPushStep);
-
-    return steps;
-}

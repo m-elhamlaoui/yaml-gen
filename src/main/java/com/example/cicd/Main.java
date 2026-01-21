@@ -9,16 +9,18 @@ import java.util.Scanner;
 
 public class Main {
 
+    private static final String PROJECT_PATH = "src/main/resources/Prjcts";
+
     public static void main(String[] args) {
         new Main().run();
     }
 
     public void run() {
         try {
-            System.out.println("CI/CD Pipeline Generator Started\n");
 
+            System.out.println("Analyzing project at: " + PROJECT_PATH);
             PipelineInput input = promptPipelineInput();
-            System.out.println("\nCreated pipeline input");
+            //System.out.println("\nCreated pipeline input");
 
             String flexmiXml = FlexmiWriter.generateFlexmi(input); // java -> flexmi
             String flexmiPath = "src/main/resources/samples/generated-input.flexmi";
@@ -26,7 +28,9 @@ public class Main {
             System.out.println("Generated Flexmi model\n");
 
             ModelToModel m2m = new ModelToModel();
-            EmfModel pipelineModel = m2m.transform(flexmiPath);
+            // Passer le chemin du projet pour la détection automatique
+            EmfModel pipelineModel = m2m.transform(flexmiPath, PROJECT_PATH);
+            //EmfModel pipelineModel = m2m.transform(flexmiPath);
 
             ModelToText m2t = new ModelToText();
             String yamlOutput = m2t.generate(pipelineModel);
