@@ -30,6 +30,7 @@ public class Main {
             ModelToModel m2m = new ModelToModel();
             // Passer le chemin du projet pour la détection automatique
             EmfModel pipelineModel = m2m.transform(flexmiPath, PROJECT_PATH);
+            //EmfModel pipelineModel = m2m.transform(flexmiPath);
 
             ModelToText m2t = new ModelToText();
             String yamlOutput = m2t.generate(pipelineModel);
@@ -102,8 +103,7 @@ public class Main {
 
             return input;
         } finally {
-            // Ne ferme pas System.in (fermement de Scanner ferme System.in sur certaines JVMs),
-            // on laisse scanner être garbage-collected à la fin du programme.
+
         }
     }
 
