@@ -1,28 +1,51 @@
 <?xml version="1.0" encoding="ASCII"?>
-<pipeline:WorkflowFile xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:pipeline="pipeline" name="souda">
+<pipeline:WorkflowFile xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:pipeline="pipeline" name="pipline test">
   <on>
+    <events>
+      <branches name="pull_request"/>
+    </events>
     <events eventType="PULL_REQUEST">
+      <branches name="main"/>
       <branches name="dev"/>
+      <branches name="test"/>
     </events>
   </on>
   <jobs name="test" runsOn="ubuntu-latest">
-    <needs>build</needs>
-    <env key="dockerHubename" value="hamza"/>
+    <env key="key" value="${secrets.key}"/>
     <steps name="Checkout code" uses="actions/checkout@v3"/>
-    <steps name="Set up JDK 11" uses="actions/setup-java@v3">
-      <with key="java-version" value="11"/>
-      <with key="distribution" value="temurin"/>
+    <steps name="Set up Node.js" uses="actions/setup-node@v4">
+      <with key="node-version" value="20"/>
+      <with key="cache" value="npm"/>
     </steps>
-    <steps name="Run tests" run="mvn test"/>
+    <steps name="Install dependencies" run="npm ci"/>
+    <steps name="Run tests" run="npm test"/>
   </jobs>
   <jobs name="build" runsOn="ubuntu-latest">
-    <env key="apikey" value="1414627"/>
-    <env key="password" value="$secrets{env.password}"/>
+    <needs>test</needs>
+    <env key="apikey" value="7eft78dtq"/>
     <steps name="Checkout code" uses="actions/checkout@v3"/>
-    <steps name="Set up JDK 11" uses="actions/setup-java@v3">
-      <with key="java-version" value="11"/>
-      <with key="distribution" value="temurin"/>
+    <steps name="Set up Node.js" uses="actions/setup-node@v4">
+      <with key="node-version" value="20"/>
+      <with key="cache" value="npm"/>
     </steps>
-    <steps name="Build with Maven" run="mvn clean package -DskipTests"/>
+    <steps name="Install dependencies" run="npm ci"/>
+    <steps name="Build project" run="npm run build --if-present"/>
+  </jobs>
+  <jobs name="deploy" runsOn="ubuntu-latest">
+    <steps name="Checkout code" uses="actions/checkout@v3"/>
+    <steps name="Set up Node.js" uses="actions/setup-node@v4">
+      <with key="node-version" value="20"/>
+      <with key="cache" value="npm"/>
+    </steps>
+    <steps name="Install dependencies" run="npm ci"/>
+    <steps name="Build project" run="npm run build --if-present"/>
+    <steps name="Login to Docker Hub" uses="docker/login-action@v2">
+      <with key="username" value="${{ secrets.DOCKERHUB_USERNAME }}"/>
+      <with key="password" value="${{ secrets.DOCKERHUB_TOKEN }}"/>
+    </steps>
+    <steps name="Build and push Docker image" uses="docker/build-push-action@v4">
+      <with key="push" value="true"/>
+      <with key="tags" value="${{ secrets.DOCKERHUB_USERNAME }}/myapp:latest"/>
+    </steps>
   </jobs>
 </pipeline:WorkflowFile>

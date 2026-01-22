@@ -1,26 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?nsuri input?>
-<PipelineInput pipelineName="souda">
+<PipelineInput pipelineName="pipline test">
   <jobs>
     <Job name="test">
       <envVariables>
-        <EnvVariable key="dockerHubename" value="hamza"/>
+        <EnvVariable key="key" value="${secrets.key}"/>
       </envVariables>
-      <needs>
-        build
-      </needs>
     </Job>
     <Job name="build">
       <envVariables>
-        <EnvVariable key="apikey" value="1414627"/>
-        <EnvVariable key="password" value="$secrets{env.password}"/>
+        <EnvVariable key="apikey" value="7eft78dtq"/>
       </envVariables>
+      <needs>
+        test
+      </needs>
+    </Job>
+    <Job name="deploy">
     </Job>
   </jobs>
   <events>
+    <Event eventType="push">
+      <branches>
+        <Branch name="pull_request"/>
+      </branches>
+    </Event>
     <Event eventType="pull_request">
       <branches>
+        <Branch name="main"/>
         <Branch name="dev"/>
+        <Branch name="test"/>
       </branches>
     </Event>
   </events>
