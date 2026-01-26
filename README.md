@@ -103,3 +103,19 @@ jobs:
       - name: Build project
         run: npm run build --if-present
 ```
+
+## 🔍 Retours d'utilisation
+### Ayman ANNA
+Pertinence de l’approche MDE
+En tant qu’utilisateur, l’idée d’automatiser la génération des workflows GitHub Actions avec une approche MDE est vraiment intéressante. Elle évite de refaire sans cesse les mêmes configurations CI/CD. Le fonctionnement est facile à comprendre : on part d’un modèle simple et l’outil génère automatiquement un workflow YAML prêt à l’emploi.
+
+Qualité de la conception
+Ce qui est appréciable, c’est que l’application est bien organisée. On sent que la logique du pipeline est séparée des détails techniques, ce qui rend l’outil plus clair et plus facile à faire évoluer.
+
+La détection automatique du type de projet (Maven, Gradle, Node, etc.) est un vrai plus, car elle permet d’utiliser l’outil immédiatement. Les presets externes sont aussi pratiques, puisqu’ils permettent de suivre de bonnes pratiques CI/CD sans avoir à modifier l’application. De plus, l’utilisation d’ETL et d’EGL rend la génération des workflows fiable.
+
+Utilisation en pratique
+À l’usage, l’application simplifie vraiment le travail. On n’a plus besoin de chercher des fichiers YAML sur Internet ni de les adapter à chaque projet. Il suffit de fournir le projet, et le workflow est généré automatiquement, ce qui fait gagner du temps et évite des erreurs.
+
+Conclusion
+Du point de vue de l’utilisateur, ce projet est très utile. Il rend la mise en place de GitHub Actions plus simple et plus accessible. Avec quelques évolutions, comme le support d’autres plateformes CI/CD ou une validation du YAML généré, l’outil pourrait devenir encore plus intéressant au quotidien.
